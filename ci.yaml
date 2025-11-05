@@ -1,0 +1,65 @@
+name: Java CI with Maven
+# parte solo con push o PR su master
+on:
+ push:
+    branches: [ master ]
+ pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+
+    ###### CI ######
+    steps:
+    - uses: actions/checkout@v2 
+
+    # creates environment that uses this Java 
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 14 # da chiedere al team backend
+        distribution: 'temurin' # da chiedere al team backend
+
+    - name: Validate Maven project
+      run: mvn validate
+
+    - name: Run tests
+      run: mvn clean test
+      continue-on-error: false  # Fail pipeline if tests fail
+
+    - name: Build project with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Notify on failure
+      if: failure() #  success() or  always()
+      run: echo "Build failed! Check the logs above."
+    
+    ###### version control ######
+    - name: Get latest tag and increment
+      id: tag_version
+      if: success()
+      run: |
+        # Get the latest tag, or use v0.0.0 if no tags exist
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $LATEST_TAG"
+        
+        # Remove 'v' prefix and split version
+        VERSION=${LATEST_TAG#v}
+        IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+        
+        # Increment patch version
+        PATCH=$((VERSION_PARTS[2] + 1))
+        NEW_TAG="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+        
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "New tag will be: $NEW_TAG"
+    
+    - name: Create and push tag
+      if: success()
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "..." 
+        git tag -a "${{ steps.tag_version.outputs.new_tag }}" -m "Release ${{ steps.tag_version.outputs.new_tag }}"
+        git push origin "${{ steps.tag_version.outputs.new_tag }}"
