@@ -26,7 +26,7 @@ jobs:
       run: cd server_test
 
     - name: Validate Maven project
-      run: mvn validate
+      run: cd server_test && mvn validate
 
     - name: Run tests
       run: mvn clean test
