@@ -10,6 +10,9 @@ jobs:
   test:
 
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server_test
 
     ###### CI ######
     steps:
@@ -21,12 +24,8 @@ jobs:
       with:
         java-version: 14 # da chiedere al team backend
 
-    - name: Change directory
-      # TODO: cambiare in base alla directory dettata dal team backend
-      run: cd server_test
-
     - name: Validate Maven project
-      run: cd server_test && mvn validate
+      run: mvn validate
 
     - name: Run tests
       run: mvn clean test
