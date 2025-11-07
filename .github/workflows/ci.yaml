@@ -22,7 +22,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        java-version: 14 # da chiedere al team backend
+        java-version: 21 # da chiedere al team backend
 
     - name: Validate Maven project
       run: mvn validate
