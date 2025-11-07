@@ -2,9 +2,9 @@ name: Java CI with Maven
 # parte solo con push o PR su master
 on:
  push:
-    branches: [ test/ci-cd ]
+    branches: [ test/ci-cd, dev ]
  pull_request:
-    branches: [ test/ci-cd ]
+    branches: [ test/ci-cd, dev ]
 
 jobs:
   test:
@@ -52,11 +52,12 @@ jobs:
         
         # Remove 'v' prefix and split version
         VERSION=${LATEST_TAG#v}
-        IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+        IFS='.|-' read -r -a VERSION_PARTS <<< "$VERSION"
         
+        CURRENT_BRANCH=$"`git branch --show-current`"
         # Increment patch version
-        PATCH=$((VERSION_PARTS[2] + 1))
-        NEW_TAG="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH"
+        PATCH="$((VERSION_PARTS[2] + 1))"
+        NEW_TAG="v${VERSION_PARTS[0]:1:999}.${VERSION_PARTS[1]}.$PATCH-$CURRENT_BRANCH"
         
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "New tag will be: $NEW_TAG"
