@@ -2,9 +2,9 @@ name: Java CI with Maven
 # parte solo con push o PR su master
 on:
  push:
-    branches: [ master ]
+    branches: [ test/ci-cd ]
  pull_request:
-    branches: [ master ]
+    branches: [ test/ci-cd ]
 
 jobs:
   test:
