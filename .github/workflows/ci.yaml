@@ -21,6 +21,10 @@ jobs:
       with:
         java-version: 14 # da chiedere al team backend
 
+    - name: Change directory
+      # TODO: cambiare in base alla directory dettata dal team backend
+      run: cd server_test
+
     - name: Validate Maven project
       run: mvn validate
 
@@ -35,6 +39,9 @@ jobs:
       if: failure() #  success() or  always()
       run: echo "Build failed! Check the logs above."
     
+    - name: Change directory back
+      run: cd ..
+      
     ###### version control ######
     - name: Get latest tag and increment
       id: tag_version
