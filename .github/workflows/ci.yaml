@@ -50,14 +50,25 @@ jobs:
         LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
         echo "Latest tag: $LATEST_TAG"
         
-        # Remove 'v' prefix and split version
+        # Remove 'v' prefix and ...
         VERSION=${LATEST_TAG#v}
-        IFS='.|-' read -r -a VERSION_PARTS <<< "$VERSION"
         
+        # ... extract the version parts
         CURRENT_BRANCH=$"`git branch --show-current`"
+        # example of a valid tag: "v2.43.0---bugfix/foo_42-bar.com"
+        # gets split in 4 parts -> [2, 43, 0, bugfix/foo_42-bar.com]
+        TAG_REGEX="((v?)((\.)?[0-9]+))|((\-){3}([a-zA-Z0-9\-_\./]+))"
+        PARTS_SEPARATED_BY_NEWLINE=$(grep -oP "$TAG_REGEX" <<< "$VERSION")
+        mapfile -t VERSION_PARTS <<< "$PARTS_SEPARATED_BY_NEWLINE"
+        #cleanup
+        #VERSION_PARTS[0]="${VERSION_PARTS[0]:1:99}"
+        VERSION_PARTS[1]="${VERSION_PARTS[1]:1:99}"
+        VERSION_PARTS[2]="${VERSION_PARTS[2]:1:99}"
+        VERSION_PARTS[3]="${VERSION_PARTS[3]:3:999}"
+
         # Increment patch version
         PATCH="$((VERSION_PARTS[2] + 1))"
-        NEW_TAG="v${VERSION_PARTS[0]:1:999}.${VERSION_PARTS[1]}.$PATCH-$CURRENT_BRANCH"
+        NEW_TAG="v${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH---$CURRENT_BRANCH"
         
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "New tag will be: $NEW_TAG"
